@@ -1,45 +1,167 @@
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int f2(char *str, int len);
+int f3(char *str, int len);
+int f4(char *str, int len);
+int f5(char *str, int len);
+int f6(char *str, int len);
 
 /**
- * main - generate a key depending on a username for crackme5
- * @argc: number of arguments passed
- * @argv: arguments passed to main
+ * main - This will generate a key for the crackme5 program
+ * @argc: No.of arguments that were passed
+ * @argv: Arguments that were passed
  *
- * Return: 0 on success, 1 on error
+ * Return: 0 if successful, otherwise 1
  */
 int main(int argc, char *argv[])
 {
-	unsigned int i, b;
-	size_t len, add;
-	char *l = "A-CHRDw87lNS0E9B2TibgpnMVys5XzvtOGJcYLU+4mjW6fxqZeF3Qa1rPhdKIouk";
-	char p[7] = "      ";
+	char *username = NULL;
+	char key[7] = {0};
+	int unknown_len = 0;
+	char *passwd_ptr = "A-CHRDw87lNS0E9B2TibgpnMVys5XzvtOGJcYLU+4mjuk";
 
-	if (argc != 2)
+	if (argc == 2)
 	{
-		printf("Correct usage: ./keygen5 username\n");
-		return (1);
+		username = argv[1];
+		while (username[unknown_len] != '\0')
+			unknown_len++;
+		key[0] = passwd_ptr[(unknown_len ^ 59) & 63];
+		key[1] = passwd_ptr[f2(username, unknown_len)];
+		key[2] = passwd_ptr[f3(username, unknown_len)];
+		key[3] = passwd_ptr[f4(username, unknown_len)];
+		key[4] = passwd_ptr[f5(username, unknown_len)];
+		key[5] = passwd_ptr[f6(username, unknown_len)];
+		printf("%s\n", key);
 	}
-	len = strlen(argv[1]);
-	p[0] = l[(len ^ 59) & 63];
-	for (i = 0, add = 0; i < len; i++)
-		add += argv[1][i];
-	p[1] = l[(add ^ 79) & 63];
-	for (i = 0, b = 1; i < len; i++)
-		b *= argv[1][i];
-	p[2] = l[(b ^ 85) & 63];
-	for (b = argv[1][0], i = 0; i < len; i++)
-		if ((char)b <= argv[1][i])
-			b = argv[1][i];
-	srand(b ^ 14);
-	p[3] = l[rand() & 63];
-	for (b = 0, i = 0; i < len; i++)
-		b += argv[1][i] * argv[1][i];
-	p[4] = l[(b ^ 239) & 63];
-	for (b = 0, i = 0; (char)i < argv[1][0]; i++)
-		b = rand();
-	p[5] = l[(b ^ 229) & 63];
-	printf("%s\n", p);
-	return (0);
+	else
+	{
+		printf("Usage: %s username\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+	return (EXIT_SUCCESS);
+}
+
+/**
+ * f2 - Computes the second character in the key for the given username
+ * @str: variable for username
+ * @len: Length for username
+ *
+ * Return: calculated  character
+ */
+int f2(char *str, int len)
+{
+	int comp_1, comp_2, k;
+
+	comp_1 = 0;
+	comp_2 = 0;
+	while (comp_2 < len)
+	{
+		k = str[comp_2];
+		comp_1 = comp_1 + k;
+		++comp_2;
+	}
+	return ((comp_2 ^ 79) & 63);
+}
+
+/**
+ * f3 - Computes the third character in the key for the given username
+ * @str: variable for username
+ * @len: Length for username
+ *
+ * Return: calculated character
+ */
+int f3(char *str, int len)
+{
+	int comp_1, comp_2, k;
+
+	comp_1 = 1;
+	comp_2 = 0;
+	while (comp_2 < len)
+	{
+		k = str[comp_2];
+		comp_1 = k * comp_1;
+		++comp_2;
+	}
+	return ((comp_1 ^ 85) & 63);
+}
+
+/**
+ * f4 - Computes the fourth character in the key for the given username
+ * @str: variable for username
+ * @len: Length for username
+ *
+ * Return: calculated character
+ */
+int f4(char *str, int len)
+{
+	int comp_1, comp_2, i, j, rdi10, n;
+
+	comp_1 = str[0];
+	comp_2 = 0;
+	while (comp_2 < len)
+	{
+		i = str[comp_2];
+		if (i > comp_1)
+		{
+			j = str[comp_2];
+			comp_2 = j;
+		}
+		++comp_2;
+	}
+	rdi10 = comp_1 ^ 14;
+	*(&rdi10 + 4) = 0;
+	srand(rdi10);
+	n = rand();
+	return (n & 63);
+}
+
+/**
+ * f5 - Computes the fifth character in the key for the given username
+ * @str: variable for username
+ * @len: Length for username
+ *
+ * Return: calculated character
+ */
+int f5(char *str, int len)
+{
+	int comp_1, comp_2, i, b, k;
+
+	comp_1 = 0;
+	comp_2 = 0;
+	while (comp_2 < len)
+	{
+		i = str[comp_2];
+		b = str[comp_2];
+		comp_1 = comp_1 + b * i;
+		++comp_2;
+	}
+	k = comp_1;
+	k = k ^ 0xef;
+	return (k & 63);
+}
+
+/**
+ * f6 - Computes the sixth character in the key for the given username
+ * @str: variable for username
+ * @len: Length for username
+ *
+ * Return: calculated character
+ */
+int f6(char *str, int len)
+{
+	int comp_1, comp_2, n;
+
+	(void)len;
+	comp_1 = 0;
+	comp_2 = 0;
+	while (str[0] > comp_2)
+	{
+		n = rand();
+		comp_1 = n;
+		++comp_2;
+	}
+	comp_1 ^= 0xe5;
+	return (comp_1 & 63);
 }
